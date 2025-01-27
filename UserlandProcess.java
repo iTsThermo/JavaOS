@@ -1,23 +1,25 @@
+
 import java.util.concurrent.Semaphore;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 /**
  *
  * @author vansh
  */
-public abstract class UserlandProcess implements Runnable{
+public abstract class UserlandProcess implements Runnable {
+
     private static final int MAX_AVAILABLE_SEM = 100;
     private final Semaphore userland_semaphore = new Semaphore(MAX_AVAILABLE_SEM, true);
     private Boolean is_quantum_expired = false;
     private Thread userland_thread = new Thread();
-    
+
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        userland_semaphore.tryAcquire();
+        main();
     }
 
     void requestStop() {
@@ -38,7 +40,7 @@ public abstract class UserlandProcess implements Runnable{
     }
 
     boolean isDone() {
-        if (userland_thread.isAlive()){
+        if (userland_thread.isAlive()) {
             System.out.println("Func: isDone: Thread is alive");
             return false;
         }
@@ -46,7 +48,7 @@ public abstract class UserlandProcess implements Runnable{
         return true;
     }
 
-    void start(){
+    void start() {
         System.out.println("Func: start: Releasing userland semaphore ");
         userland_semaphore.release();
     }
