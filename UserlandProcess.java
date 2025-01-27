@@ -1,4 +1,3 @@
-
 import java.util.concurrent.Semaphore;
 
 /*
@@ -12,37 +11,55 @@ import java.util.concurrent.Semaphore;
  */
 public abstract class UserlandProcess implements Runnable{
     private static final int MAX_AVAILABLE_SEM = 100;
-    private final Semaphore syncronized_sem = new Semaphore(MAX_AVAILABLE_SEM, true);
-    private Boolean quantum_is_expire = false;
+    private final Semaphore userland_semaphore = new Semaphore(MAX_AVAILABLE_SEM, true);
+    private Boolean is_quantum_expired = false;
+    private Thread userland_thread = new Thread();
     
-    void requestStop() {
-        
-    }
-
-    abstract void main();
-
-    boolean isStopped() {
-        return false;
-    }
-
-    boolean isDone() {
-        return false;
-    }
-
-    void start(){
-
-    }
-
-    void stop() {
-
-    }
-
     @Override
     public void run() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    void cooperate() {
+    void requestStop() {
+        System.out.println("Func: requestStop: Setting quantum expiration to true");
+        is_quantum_expired = true;
+    }
 
+    abstract void main();
+
+    boolean isStopped() {
+        if (userland_semaphore.tryAcquire()) {
+            System.out.println("Func: isStopped: Semophore is not equal to 0");
+            userland_semaphore.release();
+            return false;
+        }
+        System.out.println("Func: isStopped: Semophore is equal to 0");
+        return true;
+    }
+
+    boolean isDone() {
+        if (userland_thread.isAlive()){
+            System.out.println("Func: isDone: Thread is alive");
+            return false;
+        }
+        System.out.println("Func: isDone: Thread is not alive");
+        return true;
+    }
+
+    void start(){
+        System.out.println("Func: start: Releasing userland semaphore ");
+        userland_semaphore.release();
+    }
+
+    void stop() {
+        System.out.println("Func: stop: Aquiring semaphore");
+        userland_semaphore.tryAcquire();
+    }
+
+    void cooperate() {
+        if (is_quantum_expired) {
+            is_quantum_expired = false;
+            // OS.switchProcess();
+        }
     }
 }
